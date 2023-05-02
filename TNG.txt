@@ -1,9 +1,9 @@
-local notifLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sw1ndlerScripts/RobloxScripts/main/Notification%20Library/main.lua"))()
+local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
 
-notifLib:CreateDefaultNotif({
- TweenSpeed = 1,
- Title = "TNG API",
- Text = "TNG API Load Working!",
- Duration = 5
-})
-print("TNG API Load!")
+Notification:Notify(
+    {Title = "TNG API", Description = "TNG API LOAD!                                   YTB: TN Gaming"},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 5, Type = "option"},
+    {ImageColor = Color3.fromRGB(255, 84, 84), Callback = function(State) print("TNG Executor Working!") end}
+)
+wait(1)
