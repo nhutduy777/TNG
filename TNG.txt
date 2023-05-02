@@ -1,1 +1,9 @@
+local notifLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sw1ndlerScripts/RobloxScripts/main/Notification%20Library/main.lua"))()
+
+notifLib:CreateDefaultNotif({
+ TweenSpeed = 1,
+ Title = "TNG API",
+ Text = "TNG API Load Working!",
+ Duration = 5
+})
 print("TNG API Load!")
