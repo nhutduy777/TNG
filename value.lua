@@ -1032,7 +1032,7 @@ end
 local supportedMethods = {"GET", "POST", "PUT", "DELETE", "PATCH"}
 local HttpService, UserInputService, InsertService = game:FindService("HttpService"), game:FindService("UserInputService"), game:FindService("InsertService")
 local Bridge, ProcessID = {serverUrl = "http://localhost:19283"}, nil
-local httpSpy = false
+shared.httpspy = false
 local hwid = HttpService:GenerateGUID(false)
 
 local function sendRequest(options, timeout)
@@ -1173,6 +1173,34 @@ function Bridge:rconsole(_type, content)
 	})
 	return result ~= nil
 end
+local blockedurls = {
+    "https://v4.ident.me",
+    "http://ip-api.com/json",
+    "https://ipinfo.io",
+    "http://checkip.amazonaws.com"
+}
+local protectedr = {
+    Success = true,
+    StatusCode = 200,
+    StatusMessage = "OK",
+    Body = [[
+    {
+	    "[ TNG ]: Protected | discord.gg/getTNG"
+    }
+    ]],
+    Headers = {}
+}
+
+local function urlblockcheck(url)
+    for _, blocked in ipairs(blockedurls) do
+        local normal = url:lower():gsub("www.", "")
+        local normalb = blocked:lower():gsub("www.", "")
+        if normal:find(normalb, 1, true) then
+            return true
+        end
+    end
+    return false
+end
 
 if not shared.vulnsm then 
 	task.spawn(function()
@@ -1187,9 +1215,14 @@ if not shared.vulnsm then
 			hwid = result.Body:gsub("{", ""):gsub("}", "")
 		end
 	end)
+
 	getgenv().request = function(options)
 		assert(type(options) == "table", "invalid argument #1 to 'request' (table expected, got " .. type(options) .. ") ", 2)
 		assert(type(options.Url) == "string", "invalid option 'Url' for argument #1 to 'request' (string expected, got " .. type(options.Url) .. ") ", 2)
+		if shared.antilogger and urlblockcheck(options.Url) then
+			warn("[ TNG ]: A script tried to get your IP; URL: ", options.Url)
+			return protectedr
+		end
 		options.Method = options.Method or "GET"
 		options.Method = options.Method:upper()
 		assert(table.find(supportedMethods, options.Method), "invalid option 'Method' for argument #1 to 'request' (a valid http method expected, got '" .. options.Method .. "') ", 2)
@@ -1201,8 +1234,8 @@ if not shared.vulnsm then
 		if options.Headers then assert(type(options.Headers) == "table", "invalid option 'Headers' for argument #1 to 'request' (table expected, got " .. type(options.Url) .. ") ", 2) end
 		options.Body = options.Body or "e30=" 
 		options.Headers = options.Headers or {}
-		if httpSpy then
-			rconsoleprint("HTTPSPY:\nUrl: " .. options.Url .. 
+		if shared.httpspy then
+			print("[ HTTPSPY ]:\nUrl: " .. options.Url .. 
 				"\nMethod: " .. options.Method .. 
 				"\nBody: " .. options.Body .. 
 				"\nHeaders: " .. tostring(HttpService:JSONEncode(options.Headers))
@@ -1219,8 +1252,11 @@ if not shared.vulnsm then
 			["PlaceId"] = tostring(game.PlaceId)
 		})
 		local response = Bridge:request(options)
-		if httpSpy then
-			rconsoleprint("Response:\nStatusCode: " .. tostring(response.StatusCode) ..
+		if shared.antilogger and response and response.Body and urlblockcheck(options.Url) then
+			response.Body = protectedr
+		end
+		if shared.httpspy then
+			print("[ HTTPSPY X2 ]: Response:\nStatusCode: " .. tostring(response.StatusCode) ..
 				"\nStatusMessage: " .. tostring(response.StatusMessage) ..
 				"\nSuccess: " .. tostring(response.Success) ..
 				"\nBody: " .. tostring(response.Body) ..
@@ -1588,6 +1624,136 @@ getgenv().TNG.remote_spy = function()
     if not suc then 
         error("[ TNG ]: Failed to load the remote spy: "..tostring(rec))
     end 
+end 
+getgenv().TNG.enable_httpspy = function()
+	shared.httpspy = true 
+end 
+getgenv().TNG.disable_httpspy = function()
+	shared.httpspy = false 
+end 
+getgenv().TNG.enable_antilogger = function()
+	shared.antilogger = true 
+end 
+getgenv().TNG.disable_antilogger = function()
+	local MessageBox = Instance.new("ScreenGui")
+	local Frame = Instance.new("Frame")
+	local UICorner = Instance.new("UICorner")
+	local DropShadowHolder = Instance.new("Frame")
+	local DropShadow = Instance.new("ImageLabel")
+	local TextLabel = Instance.new("TextLabel")
+	local TextButton = Instance.new("TextButton")
+	local UICorner_2 = Instance.new("UICorner")
+	local TextButton_2 = Instance.new("TextButton")
+	local UICorner_3 = Instance.new("UICorner")
+	MessageBox.Name = "MessageBox"
+	MessageBox.Parent = game:GetService("CoreGui")
+	MessageBox.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	Frame.Parent = MessageBox
+	Frame.BackgroundColor3 = Color3.fromRGB(72, 72, 72)
+	Frame.BackgroundTransparency = 0.200
+	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame.BorderSizePixel = 0
+	Frame.Position = UDim2.new(0.34893617, 0, 0.342182904, 0)
+	Frame.Size = UDim2.new(0.28851065, 0, 0.14159292, 0)
+	UICorner.Parent = Frame
+	DropShadowHolder.Name = "DropShadowHolder"
+	DropShadowHolder.Parent = Frame
+	DropShadowHolder.BackgroundTransparency = 1.000
+	DropShadowHolder.BorderSizePixel = 0
+	DropShadowHolder.Size = UDim2.new(1, 0, 1, 0)
+	DropShadowHolder.ZIndex = 0
+	DropShadow.Name = "DropShadow"
+	DropShadow.Parent = DropShadowHolder
+	DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	DropShadow.BackgroundTransparency = 1.000
+	DropShadow.BorderSizePixel = 0
+	DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	DropShadow.Size = UDim2.new(1, 47, 1, 47)
+	DropShadow.ZIndex = 0
+	DropShadow.Image = "rbxassetid://6014261993"
+	DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	DropShadow.ImageTransparency = 0.500
+	DropShadow.ScaleType = Enum.ScaleType.Slice
+	DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+	TextLabel.Parent = Frame
+	TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.BackgroundTransparency = 1.000
+	TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextLabel.BorderSizePixel = 0
+	TextLabel.Position = UDim2.new(0.029023746, 0, -0.00212659338, 0)
+	TextLabel.Size = UDim2.new(0.95280236, 0, 0.46875, 0)
+	TextLabel.Font = Enum.Font.SourceSansBold
+	TextLabel.Text = "Are you trying to disable the anti logger?"
+	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.TextScaled = true
+	TextLabel.TextSize = 14.000
+	TextLabel.TextWrapped = true
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TextButton.Parent = Frame
+	TextButton.BackgroundColor3 = Color3.fromRGB(141, 141, 141)
+	TextButton.BackgroundTransparency = 0.700
+	TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton.BorderSizePixel = 0
+	TextButton.Position = UDim2.new(0.0290237479, 0, 0.458881706, 0)
+	TextButton.Size = UDim2.new(0.300884962, 0, 0.385416657, 0)
+	TextButton.Font = Enum.Font.SourceSans
+	TextButton.Text = "Yes"
+	TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextButton.TextScaled = true
+	TextButton.TextSize = 14.000
+	TextButton.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+	TextButton.TextWrapped = true
+	UICorner_2.Parent = TextButton
+	TextButton_2.Parent = Frame
+	TextButton_2.BackgroundColor3 = Color3.fromRGB(141, 141, 141)
+	TextButton_2.BackgroundTransparency = 0.700
+	TextButton_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton_2.BorderSizePixel = 0
+	TextButton_2.Position = UDim2.new(0.660292208, 0, 0.458881706, 0)
+	TextButton_2.Size = UDim2.new(0.300884962, 0, 0.385416657, 0)
+	TextButton_2.Font = Enum.Font.SourceSans
+	TextButton_2.Text = "No"
+	TextButton_2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextButton_2.TextScaled = true
+	TextButton_2.TextSize = 14.000
+	TextButton_2.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+	TextButton_2.TextWrapped = true
+	UICorner_3.Parent = TextButton_2
+	local function yesdisable() 
+		local script = Instance.new('LocalScript', TextButton)
+		script.Parent.MouseButton1Click:Connect(function()
+			shared.antilogger = false 
+			script.Parent.Parent.Parent:Destroy()
+		end)
+	end
+	coroutine.wrap(yesdisable)()
+	local function nodisable() 
+		local script = Instance.new('LocalScript', TextButton_2)
+		script.Parent.MouseButton1Click:Connect(function()
+			script.Parent.Parent.Parent:Destroy()
+		end)
+	end
+	coroutine.wrap(nodisable)()
+	local function drag() 
+		local script = Instance.new('LocalScript', Frame)
+		local enabled, start, pos 
+		script.Parent.InputBegan:Connect(function(inp)
+			if (inp.UserInputType == Enum.UserInputType.Touch or inp.UserInputType == Enum.UserInputType.MouseButton1) then 
+				enabled, start, pos = true, inp.Position, script.Parent.Position
+				inp.Changed:Connect(function()
+					if inp.UserInputState == Enum.UserInputState.End then
+						enabled = false
+					end
+				end)
+			end
+		end)
+		game:GetService('UserInputService').InputChanged:Connect(function(inp)
+			if inp.UserInputType == Enum.UserInputType.Touch or inp.UserInputType == Enum.UserInputType.MouseMovement and enabled then
+				game:GetService("TweenService"):Create(script.Parent, TweenInfo.new(0.1), {Position = UDim2.new(pos.X.Scale, pos.X.Offset + (inp.Position - start).X, pos.Y.Scale, pos.Y.Offset + (inp.Position - start).Y)}):Play()
+			end
+		end)
+	end
+	coroutine.wrap(drag)()	
 end 
 local oldsf = setfenv 
 getgenv().setfenv = function(f, env)
